@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BookOpen, Calendar, Users, Library } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import BooksSection from "@/components/BooksSection";
+import StudentsSection from "@/components/StudentsSection";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -88,14 +89,7 @@ const Index = () => {
           </TabsContent>
 
           <TabsContent value="students">
-            <Card>
-              <CardHeader>
-                <CardTitle>Student Management</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">Student management features coming soon...</p>
-              </CardContent>
-            </Card>
+            <StudentsSection />
           </TabsContent>
 
           <TabsContent value="events" className="space-y-4">
