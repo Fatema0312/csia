@@ -3,9 +3,34 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BookOpen, Calendar, Users, Library } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useForm } from "react-hook-form";
+import { useToast } from "@/hooks/use-toast";
 
 const Index = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const form = useForm({
+    defaultValues: {
+      bookName: "",
+      author: "",
+      genre: "",
+      quantity: "1",
+      isAvailable: true,
+    },
+  });
+
+  const onSubmit = (data: any) => {
+    console.log(data);
+    toast({
+      title: "Book Added",
+      description: `Successfully added ${data.bookName} to the library.`,
+    });
+    form.reset();
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -85,10 +110,106 @@ const Index = () => {
           <TabsContent value="books">
             <Card>
               <CardHeader>
-                <CardTitle>Book Management</CardTitle>
+                <CardTitle>Add New Book</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground">Book management features coming soon...</p>
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="bookName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Book Name</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Enter book name" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="author"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Author</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Enter author name" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="genre"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Genre</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select a genre" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="fiction">Fiction</SelectItem>
+                              <SelectItem value="non-fiction">Non-Fiction</SelectItem>
+                              <SelectItem value="mystery">Mystery</SelectItem>
+                              <SelectItem value="science">Science</SelectItem>
+                              <SelectItem value="fantasy">Fantasy</SelectItem>
+                              <SelectItem value="biography">Biography</SelectItem>
+                              <SelectItem value="history">History</SelectItem>
+                              <SelectItem value="poetry">Poetry</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="quantity"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Quantity</FormLabel>
+                          <FormControl>
+                            <Input type="number" min="1" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="isAvailable"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Availability Status</FormLabel>
+                          <Select onValueChange={(value) => field.onChange(value === 'true')} defaultValue={field.value.toString()}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select availability" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="true">Available</SelectItem>
+                              <SelectItem value="false">Not Available</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <Button type="submit">Add Book</Button>
+                  </form>
+                </Form>
               </CardContent>
             </Card>
           </TabsContent>
