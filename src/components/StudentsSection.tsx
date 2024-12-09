@@ -98,10 +98,7 @@ const StudentsSection = () => {
 
   const generateRecommendations = async (student: Student) => {
     try {
-      const classifier = await pipeline(
-        "text-classification",
-        "facebook/bart-large-mnli"
-      );
+      const classifier = await pipeline("text-classification");
 
       // Combine all book titles for analysis
       const bookHistory = [...student.currentBooks, ...student.bookHistory]
@@ -119,17 +116,20 @@ const StudentsSection = () => {
 
       // Get recommendations based on reading history
       const results = await Promise.all(
-        potentialBooks.map((book) =>
-          classifier(bookHistory, book)
-        )
+        potentialBooks.map(async (book) => {
+          const result = await classifier(bookHistory, {
+            text: book,
+            candidate_labels: ["relevant", "not_relevant"],
+          });
+          return {
+            book,
+            score: Array.isArray(result) ? result[0].score : result.score,
+          };
+        })
       );
 
       // Sort and get top 3 recommendations
       const topRecommendations = results
-        .map((result, index) => ({
-          book: potentialBooks[index],
-          score: result.scores[0],
-        }))
         .sort((a, b) => b.score - a.score)
         .slice(0, 3)
         .map((item) => item.book);
