@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState } from "react";
-import { pipeline, TextClassificationOutput } from "@huggingface/transformers";
+import { pipeline } from "@huggingface/transformers";
 import { useToast } from "@/hooks/use-toast";
 
 interface BookRecord {
@@ -118,17 +118,14 @@ const StudentsSection = () => {
       const results = await Promise.all(
         potentialBooks.map(async (book) => {
           const result = await classifier(bookHistory, {
-            candidate_labels: ["relevant", "not_relevant"],
-          }) as TextClassificationOutput;
+            labels: ["relevant", "not_relevant"],
+          });
           
-          // Handle both array and single result cases
-          const scores = Array.isArray(result) ? result : [result];
-          const relevanceScore = scores[0]?.label === "relevant" ? 
-            scores[0]?.score : 0;
-
           return {
             book,
-            score: relevanceScore,
+            score: Array.isArray(result) ? 
+              result[0]?.score || 0 : 
+              'score' in result ? result.score : 0
           };
         })
       );
