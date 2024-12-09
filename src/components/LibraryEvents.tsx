@@ -2,6 +2,12 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { format } from "date-fns";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
 
 interface LibraryEvent {
   id: number;
@@ -12,7 +18,7 @@ interface LibraryEvent {
 }
 
 const LibraryEvents = () => {
-  const [events] = useState<LibraryEvent[]>([
+  const [events, setEvents] = useState<LibraryEvent[]>([
     {
       id: 1,
       name: "Book Fair",
@@ -36,8 +42,97 @@ const LibraryEvents = () => {
     }
   ]);
 
+  const [newEvent, setNewEvent] = useState({
+    name: "",
+    date: "",
+    grades: "",
+    description: ""
+  });
+
+  const { toast } = useToast();
+
+  const handleAddEvent = () => {
+    if (!newEvent.name || !newEvent.date || !newEvent.grades || !newEvent.description) {
+      toast({
+        title: "Error",
+        description: "Please fill in all fields",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const event: LibraryEvent = {
+      id: events.length + 1,
+      name: newEvent.name,
+      date: new Date(newEvent.date),
+      grades: newEvent.grades,
+      description: newEvent.description
+    };
+
+    setEvents([...events, event]);
+    setNewEvent({ name: "", date: "", grades: "", description: "" });
+    
+    toast({
+      title: "Success",
+      description: "Event added successfully"
+    });
+  };
+
   return (
     <div className="space-y-6 p-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold">Library Events</h2>
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button>Add Event</Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add New Event</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="name">Event Name</Label>
+                <Input
+                  id="name"
+                  value={newEvent.name}
+                  onChange={(e) => setNewEvent({ ...newEvent, name: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label htmlFor="date">Date</Label>
+                <Input
+                  id="date"
+                  type="date"
+                  value={newEvent.date}
+                  onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label htmlFor="grades">Grades</Label>
+                <Input
+                  id="grades"
+                  value={newEvent.grades}
+                  onChange={(e) => setNewEvent({ ...newEvent, grades: e.target.value })}
+                  placeholder="e.g., 9-12 or All Grades"
+                />
+              </div>
+              <div>
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  value={newEvent.description}
+                  onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
+                />
+              </div>
+              <Button onClick={handleAddEvent} className="w-full">
+                Add Event
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+
       <Card>
         <CardHeader>
           <CardTitle>Library Events</CardTitle>
