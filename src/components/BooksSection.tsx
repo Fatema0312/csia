@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { useForm } from "react-hook-form";
 import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
 
 interface Book {
   id: number;
@@ -16,7 +17,7 @@ interface Book {
   isAvailable: boolean;
 }
 
-const mockBooks: Book[] = [
+const initialBooks: Book[] = [
   {
     id: 1,
     name: "The Great Gatsby",
@@ -33,11 +34,12 @@ const mockBooks: Book[] = [
     quantity: 2,
     isAvailable: true,
   },
-  // Add more mock books as needed
 ];
 
 const BooksSection = () => {
   const { toast } = useToast();
+  const [books, setBooks] = useState<Book[]>(initialBooks);
+  
   const form = useForm({
     defaultValues: {
       bookName: "",
@@ -49,11 +51,22 @@ const BooksSection = () => {
   });
 
   const onSubmit = (data: any) => {
-    console.log(data);
+    const newBook: Book = {
+      id: books.length + 1,
+      name: data.bookName,
+      author: data.author,
+      genre: data.genre,
+      quantity: parseInt(data.quantity),
+      isAvailable: true,
+    };
+    
+    setBooks([...books, newBook]);
+    
     toast({
       title: "Book Added",
       description: `Successfully added ${data.bookName} to the library.`,
     });
+    
     form.reset();
   };
 
@@ -154,7 +167,7 @@ const BooksSection = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {mockBooks.map((book) => (
+              {books.map((book) => (
                 <TableRow key={book.id}>
                   <TableCell>{book.name}</TableCell>
                   <TableCell>{book.author}</TableCell>
