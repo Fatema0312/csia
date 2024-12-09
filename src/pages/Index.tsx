@@ -5,6 +5,7 @@ import { BookOpen, Calendar, Users, Library } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import BooksSection from "@/components/BooksSection";
 import StudentsSection from "@/components/StudentsSection";
+import LibraryEvents from "@/components/LibraryEvents";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -59,7 +60,7 @@ const Index = () => {
                   <Calendar className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">0</div>
+                  <div className="text-2xl font-bold">3</div>
                 </CardContent>
               </Card>
 
@@ -92,15 +93,8 @@ const Index = () => {
             <StudentsSection />
           </TabsContent>
 
-          <TabsContent value="events" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Library Events</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">Event management features coming soon...</p>
-              </CardContent>
-            </Card>
+          <TabsContent value="events">
+            <LibraryEvents />
           </TabsContent>
         </Tabs>
       </main>
