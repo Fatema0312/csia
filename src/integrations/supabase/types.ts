@@ -9,6 +9,48 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      book_reviews: {
+        Row: {
+          book_id: number
+          created_at: string
+          id: string
+          rating: number
+          review: string | null
+          user_id: string
+        }
+        Insert: {
+          book_id: number
+          created_at?: string
+          id?: string
+          rating: number
+          review?: string | null
+          user_id: string
+        }
+        Update: {
+          book_id?: number
+          created_at?: string
+          id?: string
+          rating?: number
+          review?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "book_reviews_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: false
+            referencedRelation: "books"
+            referencedColumns: ["Book_ID"]
+          },
+          {
+            foreignKeyName: "book_reviews_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       books: {
         Row: {
           Author: string
@@ -33,12 +75,90 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          created_at: string
+          grade: string | null
+          id: string
+          name: string | null
+          section: string | null
+        }
+        Insert: {
+          created_at?: string
+          grade?: string | null
+          id: string
+          name?: string | null
+          section?: string | null
+        }
+        Update: {
+          created_at?: string
+          grade?: string | null
+          id?: string
+          name?: string | null
+          section?: string | null
+        }
+        Relationships: []
+      }
+      student_books: {
+        Row: {
+          book_id: number
+          borrow_date: string
+          created_at: string
+          id: string
+          return_date: string
+          returned: boolean | null
+          user_id: string
+        }
+        Insert: {
+          book_id: number
+          borrow_date?: string
+          created_at?: string
+          id?: string
+          return_date: string
+          returned?: boolean | null
+          user_id: string
+        }
+        Update: {
+          book_id?: number
+          borrow_date?: string
+          created_at?: string
+          id?: string
+          return_date?: string
+          returned?: boolean | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_books_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: false
+            referencedRelation: "books"
+            referencedColumns: ["Book_ID"]
+          },
+          {
+            foreignKeyName: "student_books_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_book_recommendations: {
+        Args: {
+          p_user_id: string
+        }
+        Returns: {
+          book_id: number
+          book_name: string
+          score: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
