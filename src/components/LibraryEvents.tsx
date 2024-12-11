@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { format } from "date-fns";
@@ -8,9 +8,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface LibraryEvent {
-  id: number;
+  id: string;
   name: string;
   date: Date;
   grades: string;
@@ -18,30 +19,7 @@ interface LibraryEvent {
 }
 
 const LibraryEvents = () => {
-  const [events, setEvents] = useState<LibraryEvent[]>([
-    {
-      id: 1,
-      name: "Book Fair",
-      date: new Date("2024-04-15"),
-      grades: "All Grades",
-      description: "Annual book fair featuring new releases and classic literature."
-    },
-    {
-      id: 2,
-      name: "Reading Challenge",
-      date: new Date("2024-04-20"),
-      grades: "6-8",
-      description: "Middle school reading competition with prizes."
-    },
-    {
-      id: 3,
-      name: "Author Visit",
-      date: new Date("2024-05-01"),
-      grades: "9-12",
-      description: "Meet and greet with bestselling young adult author."
-    }
-  ]);
-
+  const [events, setEvents] = useState<LibraryEvent[]>([]);
   const [newEvent, setNewEvent] = useState({
     name: "",
     date: "",
@@ -51,7 +29,46 @@ const LibraryEvents = () => {
 
   const { toast } = useToast();
 
-  const handleAddEvent = () => {
+  const fetchEvents = async () => {
+    const { data, error } = await supabase
+      .from('library_events')
+      .select('*')
+      .order('date', { ascending: true });
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch events",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setEvents(data.map(event => ({
+      ...event,
+      date: new Date(event.date)
+    })));
+  };
+
+  useEffect(() => {
+    fetchEvents();
+
+    const subscription = supabase
+      .channel('library_events_changes')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'library_events' }, 
+        () => {
+          fetchEvents();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  const handleAddEvent = async () => {
     if (!newEvent.name || !newEvent.date || !newEvent.grades || !newEvent.description) {
       toast({
         title: "Error",
@@ -61,15 +78,24 @@ const LibraryEvents = () => {
       return;
     }
 
-    const event: LibraryEvent = {
-      id: events.length + 1,
-      name: newEvent.name,
-      date: new Date(newEvent.date),
-      grades: newEvent.grades,
-      description: newEvent.description
-    };
+    const { error } = await supabase
+      .from('library_events')
+      .insert([{
+        name: newEvent.name,
+        date: newEvent.date,
+        grades: newEvent.grades,
+        description: newEvent.description
+      }]);
 
-    setEvents([...events, event]);
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to add event",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setNewEvent({ name: "", date: "", grades: "", description: "" });
     
     toast({

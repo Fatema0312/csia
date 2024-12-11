@@ -75,6 +75,33 @@ export type Database = {
         }
         Relationships: []
       }
+      library_events: {
+        Row: {
+          created_at: string
+          date: string
+          description: string | null
+          grades: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          description?: string | null
+          grades: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          description?: string | null
+          grades?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
