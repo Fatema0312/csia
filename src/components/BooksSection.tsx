@@ -6,7 +6,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { useForm } from "react-hook-form";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Book {
   id: number;
@@ -17,28 +18,9 @@ interface Book {
   isAvailable: boolean;
 }
 
-const initialBooks: Book[] = [
-  {
-    id: 1,
-    name: "The Great Gatsby",
-    author: "F. Scott Fitzgerald",
-    genre: "fiction",
-    quantity: 3,
-    isAvailable: true,
-  },
-  {
-    id: 2,
-    name: "To Kill a Mockingbird",
-    author: "Harper Lee",
-    genre: "fiction",
-    quantity: 2,
-    isAvailable: true,
-  },
-];
-
 const BooksSection = () => {
   const { toast } = useToast();
-  const [books, setBooks] = useState<Book[]>(initialBooks);
+  const [books, setBooks] = useState<Book[]>([]);
   
   const form = useForm({
     defaultValues: {
@@ -50,17 +32,74 @@ const BooksSection = () => {
     },
   });
 
-  const onSubmit = (data: any) => {
-    const newBook: Book = {
-      id: books.length + 1,
-      name: data.bookName,
-      author: data.author,
-      genre: data.genre,
-      quantity: parseInt(data.quantity),
-      isAvailable: true,
+  // Fetch books from Supabase
+  const fetchBooks = async () => {
+    const { data, error } = await supabase
+      .from('books')
+      .select('*');
+    
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch books",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Transform the data to match our Book interface
+    const transformedBooks = data.map(book => ({
+      id: book.Book_ID,
+      name: book["Book name"],
+      author: book.Author,
+      genre: book.Genre || "",
+      quantity: book.Quantity || 0,
+      isAvailable: (book.Quantity || 0) > 0
+    }));
+
+    setBooks(transformedBooks);
+  };
+
+  useEffect(() => {
+    fetchBooks();
+
+    // Subscribe to realtime changes
+    const subscription = supabase
+      .channel('books_changes')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'books' }, 
+        () => {
+          fetchBooks();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  const onSubmit = async (data: any) => {
+    const newBook = {
+      "Book name": data.bookName,
+      Author: data.author,
+      Book_ID: Date.now(), // Generate a unique ID
+      Genre: data.genre,
+      Quantity: parseInt(data.quantity),
     };
     
-    setBooks([...books, newBook]);
+    const { error } = await supabase
+      .from('books')
+      .insert([newBook]);
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to add book",
+        variant: "destructive",
+      });
+      return;
+    }
     
     toast({
       title: "Book Added",
