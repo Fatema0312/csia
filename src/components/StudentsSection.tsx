@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState } from "react";
-import { pipeline } from "@huggingface/transformers";
+import { pipeline, type Pipeline } from "@huggingface/transformers";
 import { useToast } from "@/hooks/use-toast";
 
 interface BookRecord {
@@ -98,7 +98,7 @@ const StudentsSection = () => {
 
   const generateRecommendations = async (student: Student) => {
     try {
-      const classifier = await pipeline("text-classification");
+      const classifier = await pipeline("text-classification") as Pipeline;
 
       // Combine all book titles for analysis
       const bookHistory = [...student.currentBooks, ...student.bookHistory]
@@ -118,14 +118,13 @@ const StudentsSection = () => {
       const results = await Promise.all(
         potentialBooks.map(async (book) => {
           const result = await classifier(bookHistory, {
-            labels: ["relevant", "not_relevant"],
+            candidate_labels: ["relevant", "not_relevant"],
           });
           
           return {
             book,
-            score: Array.isArray(result) ? 
-              result[0]?.score || 0 : 
-              'score' in result ? result.score : 0
+            score: typeof result === 'object' && 'scores' in result ? 
+              result.scores[0] : 0
           };
         })
       );
