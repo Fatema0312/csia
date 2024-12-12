@@ -19,22 +19,19 @@ const AddBookForm = ({ onBookAdded }: AddBookFormProps) => {
       author: "",
       genre: "",
       quantity: "1",
-      isAvailable: true,
     },
   });
 
   const onSubmit = async (data: any) => {
-    const newBook = {
-      "Book name": data.bookName,
-      Author: data.author,
-      Book_ID: Date.now(),
-      Genre: data.genre,
-      Quantity: parseInt(data.quantity),
-    };
-    
     const { error } = await supabase
       .from('books')
-      .insert([newBook]);
+      .insert([{
+        "Book name": data.bookName,
+        Author: data.author,
+        Book_ID: Date.now(),
+        Genre: data.genre,
+        Quantity: parseInt(data.quantity),
+      }]);
 
     if (error) {
       console.error('Error adding book:', error);
@@ -47,7 +44,7 @@ const AddBookForm = ({ onBookAdded }: AddBookFormProps) => {
     }
     
     toast({
-      title: "Book Added",
+      title: "Success",
       description: `Successfully added ${data.bookName} to the library.`,
     });
     

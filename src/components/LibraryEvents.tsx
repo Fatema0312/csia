@@ -26,7 +26,7 @@ const LibraryEvents = () => {
     grades: "",
     description: ""
   });
-
+  const [open, setOpen] = useState(false);
   const { toast } = useToast();
 
   const fetchEvents = async () => {
@@ -80,12 +80,7 @@ const LibraryEvents = () => {
 
     const { error } = await supabase
       .from('library_events')
-      .insert([{
-        name: newEvent.name,
-        date: newEvent.date,
-        grades: newEvent.grades,
-        description: newEvent.description
-      }]);
+      .insert([newEvent]);
 
     if (error) {
       toast({
@@ -97,6 +92,7 @@ const LibraryEvents = () => {
     }
 
     setNewEvent({ name: "", date: "", grades: "", description: "" });
+    setOpen(false);
     
     toast({
       title: "Success",
@@ -108,7 +104,7 @@ const LibraryEvents = () => {
     <div className="space-y-6 p-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Library Events</h2>
-        <Dialog>
+        <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button>Add Event</Button>
           </DialogTrigger>
