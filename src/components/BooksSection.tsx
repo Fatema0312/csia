@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import AddBookForm from "./books/AddBookForm";
 import BookList from "./books/BookList";
+import { Session } from "@supabase/supabase-js";
 
 interface Book {
   id: number;
@@ -17,7 +18,24 @@ interface Book {
 const BooksSection = () => {
   const { toast } = useToast();
   const [books, setBooks] = useState<Book[]>([]);
+  const [session, setSession] = useState<Session | null>(null);
   
+  useEffect(() => {
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
   const fetchBooks = async () => {
     const { data, error } = await supabase
       .from('books')
@@ -64,14 +82,22 @@ const BooksSection = () => {
 
   return (
     <div className="space-y-4">
-      <Card>
-        <CardHeader>
-          <CardTitle>Add New Book</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <AddBookForm onBookAdded={fetchBooks} />
-        </CardContent>
-      </Card>
+      {session ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Add New Book</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <AddBookForm onBookAdded={fetchBooks} />
+          </CardContent>
+        </Card>
+      ) : (
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-muted-foreground">Please sign in to add books.</p>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>

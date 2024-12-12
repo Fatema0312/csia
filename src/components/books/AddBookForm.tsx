@@ -23,6 +23,17 @@ const AddBookForm = ({ onBookAdded }: AddBookFormProps) => {
   });
 
   const onSubmit = async (data: any) => {
+    const session = await supabase.auth.getSession();
+    
+    if (!session.data.session) {
+      toast({
+        title: "Error",
+        description: "You must be signed in to add books",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const { error } = await supabase
       .from('books')
       .insert([{
